@@ -439,7 +439,8 @@ class LambdaHandler(object):
                     # https://blahblahblah.execute-api.us-east-1.amazonaws.com/dev
                     # So, we need to make sure the WSGI app knows this.
                     script_name = '/' + settings.API_STAGE
-
+                print(script_name, event, self.trailing_slash,
+                      settings.BINARY_SUPPORT)
                 # Create the environment for WSGI and handle the request
                 environ = create_wsgi_request(
                     event,
@@ -447,6 +448,7 @@ class LambdaHandler(object):
                     trailing_slash=self.trailing_slash,
                     binary_support=settings.BINARY_SUPPORT
                 )
+                print(environ)
 
                 # We are always on https on Lambda, so tell our wsgi app that.
                 environ['HTTPS'] = 'on'
@@ -455,7 +457,7 @@ class LambdaHandler(object):
 
                 # Execute the application
                 response = Response.from_app(self.wsgi_app, environ)
-
+                print(response)
                 # This is the object we're going to return.
                 # Pack the WSGI response into our special dictionary.
                 zappa_returndict = dict()
