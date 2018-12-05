@@ -1116,6 +1116,9 @@ class ZappaCLI(object):
         else:
             print(response)
 
+        if 'FunctionError' in response:
+            exit(-1)
+
     def status(self, return_json=False):
         """
         Describe the status of the current deployment.
