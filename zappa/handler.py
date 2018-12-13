@@ -105,7 +105,9 @@ class LambdaHandler(object):
             os.environ["FRAMEWORK"] = "Zappa"
             try:
                 os.environ["PROJECT"] = self.settings.PROJECT_NAME
-                os.environ["STAGE"] = self.settings.API_STAGE
+                os.environ["API_STAGE"] = self.settings.API_STAGE
+                if os.environ.get("STAGE") is None:
+                    os.environ["STAGE"] = self.settings.API_STAGE
             except Exception:  # pragma: no cover
                 pass
 
