@@ -1939,9 +1939,9 @@ class ZappaCLI(object):
                 # Related: https://github.com/Miserlou/Zappa/issues/556
                 exclude = self.stage_config.get(
                         'exclude', [
-                                        "boto3",
+                                        # "boto3",
+                                        # "botocore",
                                         "dateutil",
-                                        "botocore",
                                         "s3transfer",
                                         "six.py",
                                         "jmespath",
@@ -1951,9 +1951,9 @@ class ZappaCLI(object):
                 # This could be python3.6 optimized.
                 exclude = self.stage_config.get(
                         'exclude', [
-                                        "boto3",
+                                        # "boto3",
+                                        # "botocore",
                                         "dateutil",
-                                        "botocore",
                                         "s3transfer",
                                         "concurrent"
                                     ])
