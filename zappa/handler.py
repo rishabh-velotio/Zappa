@@ -211,7 +211,8 @@ class LambdaHandler(object):
         else:
             boto_session = self.session
 
-        s3 = boto_session.resource('s3')
+        from botocore.config import Config
+        s3 = boto_session.resource('s3', config=Config(signature_version='s3v4'))
         try:
             remote_env_object = s3.Object(remote_bucket, remote_file).get()
         except Exception as e:  # pragma: no cover
