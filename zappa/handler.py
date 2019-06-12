@@ -117,7 +117,6 @@ class LambdaHandler(object):
             for key in self.settings.ENVIRONMENT_VARIABLES.keys():
                 os.environ[str(key)] = self.settings.ENVIRONMENT_VARIABLES[key]
 
-            print(os.environ)
 
             # Pulling from S3 if given a zip path
             project_zip_path = getattr(self.settings, 'ZIP_PATH', None)
