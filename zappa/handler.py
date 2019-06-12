@@ -105,7 +105,9 @@ class LambdaHandler(object):
             os.environ["FRAMEWORK"] = "Zappa"
             try:
                 os.environ["PROJECT"] = self.settings.PROJECT_NAME
-                os.environ["STAGE"] = self.settings.API_STAGE
+                os.environ["API_STAGE"] = self.settings.API_STAGE
+                if os.environ.get("STAGE") is None:
+                    os.environ["STAGE"] = self.settings.API_STAGE
             except Exception:  # pragma: no cover
                 pass
 
@@ -114,6 +116,7 @@ class LambdaHandler(object):
             # https://github.com/Miserlou/Zappa/issues/604
             for key in self.settings.ENVIRONMENT_VARIABLES.keys():
                 os.environ[str(key)] = self.settings.ENVIRONMENT_VARIABLES[key]
+
 
             # Pulling from S3 if given a zip path
             project_zip_path = getattr(self.settings, 'ZIP_PATH', None)
