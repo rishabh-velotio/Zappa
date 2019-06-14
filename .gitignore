@@ -74,7 +74,7 @@ target/
 # Vim stuff:
 *.swp
 *.swo
-*~
 tests/zappa_settings.json
 tests/example_template_outputs
 
+.venv/

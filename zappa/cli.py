@@ -112,6 +112,8 @@ class ZappaCLI(object):
     authorizer = None
     aws_kms_key_arn = ''
 
+    cognito_authorizer_path = '/'
+
     stage_name_env_pattern = re.compile('^[a-zA-Z0-9_]+$')
 
     def __init__(self):
@@ -597,7 +599,8 @@ class ZappaCLI(object):
                                             iam_authorization=self.iam_authorization,
                                             authorizer=self.authorizer,
                                             cors_options=self.cors,
-                                            description=self.apigateway_description
+                                            description=self.apigateway_description,
+                                            cognito_authorizer_path=self.cognito_authorizer_path
                                         )
 
         if not output:
@@ -714,7 +717,8 @@ class ZappaCLI(object):
                                                         iam_authorization=self.iam_authorization,
                                                         authorizer=self.authorizer,
                                                         cors_options=self.cors,
-                                                        description=self.apigateway_description
+                                                        description=self.apigateway_description,
+                                                        cognito_authorizer_path=self.cognito_authorizer_path
                                                     )
 
             self.zappa.update_stack(self.api_name, self.s3_bucket_name, wait=True)
@@ -866,7 +870,8 @@ class ZappaCLI(object):
                                             iam_authorization=self.iam_authorization,
                                             authorizer=self.authorizer,
                                             cors_options=self.cors,
-                                            description=self.apigateway_description
+                                            description=self.apigateway_description,
+                                            cognito_authorizer_path=self.cognito_authorizer_path
                                         )
             api_id = self.zappa.get_api_id(self.api_name)
             self.zappa.update_stack(self.api_name, self.s3_bucket_name, wait=True, update_only=True)
@@ -1813,6 +1818,7 @@ class ZappaCLI(object):
         self.authorizer = self.stage_config.get('authorizer', {})
         self.runtime = self.stage_config.get('runtime', get_runtime_from_python_version())
         self.aws_kms_key_arn = self.stage_config.get('aws_kms_key_arn', '')
+        self.cognito_authorizer_path = self.stage_config.get('cognito_authorizer_path', '/')
 
         desired_role_name = self.lambda_name + "-ZappaLambdaExecutionRole"
         self.zappa = Zappa( boto_session=session,

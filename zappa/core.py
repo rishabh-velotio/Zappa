@@ -294,9 +294,13 @@ class Zappa(object):
         For a given package, returns a list of required packages. Recursive.
         """
         import pip
+        if pip.__version__ >= "10.0.0":
+            from pip._internal.utils.misc import get_installed_distributions
+        else:
+            from pip import get_installed_distributions
         deps = []
         if not installed_distros:
-            installed_distros = pip.get_installed_distributions()
+            installed_distros = get_installed_distributions()
         for package in installed_distros:
             if package.project_name.lower() == pkg_name.lower():
                 deps = [(package.project_name, package.version)]
@@ -852,7 +856,7 @@ class Zappa(object):
 
         updated_dict = {
             "FunctionName": function_name,
-            "Runtime": 'python2.7',
+            "Runtime": runtime,
             "Role": self.credentials_arn,
             "Handler": handler,
             "Description": description,
@@ -974,7 +978,8 @@ class Zappa(object):
                                   authorization_type='NONE',
                                   authorizer=None,
                                   cors_options=None,
-                                  description=None
+                                  description=None,
+                                  cognito_authorizer_path='/'
                                   ):
 
         """
@@ -997,6 +1002,8 @@ class Zappa(object):
         # The Resources
         ##
         authorizer_resource = None
+        cognito_authorizer_resource = None
+        cognito_authorization_type = authorization_type
         if authorizer:
             authorizer_lambda_arn = authorizer.get('arn', lambda_arn)
             lambda_uri = 'arn:aws:apigateway:{region_name}:lambda:path/2015-03-31/functions/{lambda_arn}/invocations'.format(
@@ -1006,6 +1013,11 @@ class Zappa(object):
             authorizer_resource = self.create_authorizer(
                 restapi, lambda_uri, authorizer
             )
+
+        if cognito_authorizer_path != "/":
+            cognito_authorizer_resource = authorizer_resource
+            authorizer_resource = None
+            authorization_type = 'NONE'
 
         self.create_and_setup_methods(  restapi,
                                         root_id,
@@ -1047,6 +1059,16 @@ class Zappa(object):
                                         1,
                                         cors_options
                                     )  # pragma: no cover
+
+        if cognito_authorizer_path != "/":
+            resources_to_create = self.get_resources_from_cognito_authorizer_path(
+                cognito_authorizer_path)
+            self.create_cognito_resources(root_id,
+                                          restapi, api_key_required, invocations_uri,
+                authorization_type, authorizer_resource, cors_options,
+                resources_to_create, cognito_authorization_type,
+                cognito_authorizer_resource
+            )
         return restapi
 
     def create_authorizer(self, restapi, uri, authorizer):
@@ -1183,6 +1205,71 @@ class Zappa(object):
 
         integration.Uri = uri
         method.Integration = integration
+
+    def get_resources_from_cognito_authorizer_path(
+            self, cognito_authorizer_path):
+        """
+
+        :param cognito_authorizer_path: /api/{app_name}/cognito/
+        :return:
+        """
+
+        if cognito_authorizer_path[-1] != "/":
+            cognito_authorizer_path += "/"
+        resources = cognito_authorizer_path.split("/")
+        resources_to_create = []
+        for index, resource in enumerate(resources):
+            if resource:
+                resources_to_create.append(
+                    {
+                        "path": resource,
+                        "is_cognito_resource": False
+                    }
+                )
+        resources_to_create[-1]["is_cognito_resource"] = True
+        resources_to_create.append({
+            "path": "{proxy+}",
+            "is_cognito_resource": True
+        })
+        return resources_to_create
+
+    def create_cognito_resources(
+            self, parent_id, restapi, api_key_required, invocations_uri,
+            authorization_type, authorizer_resource, cors_options,
+            resources_to_create, cognito_authorization_type,
+            cognito_authorizer_resource
+    ):
+
+        for index, resource_dict in enumerate(resources_to_create):
+
+            resource = troposphere.apigateway.Resource('ResourceAnyPathSlashed{}'.format(index+2))
+            self.cf_api_resources.append(resource.title)
+            resource.RestApiId = troposphere.Ref(restapi)
+            resource.ParentId = parent_id
+            resource.PathPart = resource_dict["path"]
+            self.cf_template.add_resource(resource)
+
+            parent_id = troposphere.Ref(resource)
+
+            if resource_dict["is_cognito_resource"]:
+                authorization_type = cognito_authorization_type
+                authorizer_resource = cognito_authorizer_resource
+            self.create_and_setup_methods(restapi,
+                                          resource,
+                                          api_key_required,
+                                          invocations_uri,
+                                          authorization_type,
+                                          authorizer_resource,
+                                          index+2
+                                          )  # pragma: no cover
+
+            if cors_options is not None:
+                self.create_and_setup_cors(restapi,
+                                           resource,
+                                           invocations_uri,
+                                           index+2,
+                                           cors_options
+                                           )  # pragma: no cover
 
     def deploy_api_gateway(self,
                            api_id,
@@ -1476,7 +1563,8 @@ class Zappa(object):
                               iam_authorization,
                               authorizer,
                               cors_options=None,
-                              description=None
+                              description=None,
+                              cognito_authorizer_path='/'
                               ):
 
         """
@@ -1509,7 +1597,8 @@ class Zappa(object):
                                             authorization_type=auth_type,
                                             authorizer=authorizer,
                                             cors_options=cors_options,
-                                            description=description
+                                            description=description,
+                                            cognito_authorizer_path=cognito_authorizer_path
                                         )
 
         return self.cf_template
