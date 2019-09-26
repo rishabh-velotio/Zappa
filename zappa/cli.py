@@ -1942,7 +1942,7 @@ class ZappaCLI(object):
                                         # "boto3",
                                         # "botocore",
                                         "dateutil",
-                                        "s3transfer",
+                                        # "s3transfer",
                                         "six.py",
                                         "jmespath",
                                         "concurrent"
@@ -1954,7 +1954,7 @@ class ZappaCLI(object):
                                         # "boto3",
                                         # "botocore",
                                         "dateutil",
-                                        "s3transfer",
+                                        # "s3transfer",
                                         "concurrent"
                                     ])
 
