@@ -1941,11 +1941,11 @@ class ZappaCLI(object):
                         'exclude', [
                                         # "boto3",
                                         # "botocore",
-                                        "dateutil",
+                                        # "dateutil",
                                         # "s3transfer",
-                                        "six.py",
-                                        "jmespath",
-                                        "concurrent"
+                                        # "six.py",
+                                        # "jmespath",
+                                        # "concurrent"
                                     ])
             else:
                 # This could be python3.6 optimized.
@@ -1953,9 +1953,9 @@ class ZappaCLI(object):
                         'exclude', [
                                         # "boto3",
                                         # "botocore",
-                                        "dateutil",
+                                        # "dateutil",
                                         # "s3transfer",
-                                        "concurrent"
+                                        # "concurrent"
                                     ])
 
             # Create a single zip that has the handler and application
